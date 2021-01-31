@@ -4,8 +4,8 @@ const fs = require('fs');
 const cookiesFilePath = 'cookies.json';
 
 async function loginTT(page) {
-  await page.type('[name="session[username_or_email]"]', 'matheusg4g4@gmail.com');
-  await page.type('[name="session[password]"]', 'ma33145860');
+  await page.type('[name="session[username_or_email]"]', process.env.EMAIL);
+  await page.type('[name="session[password]"]', process.env.PASS);
   await page.click('[data-testid="LoginForm_Login_Button"]');
   
   await page.waitForNavigation();
@@ -13,8 +13,8 @@ async function loginTT(page) {
   const pageUrl = page.url();
 
   if (pageUrl === 'https://twitter.com/login?email_disabled=true&redirect_after_login=%2F') {
-    await page.type('[name="session[username_or_email]"]', 'matheuso_99');
-    await page.type('[name="session[password]"]', 'ma33145860');
+    await page.type('[name="session[username_or_email]"]', process.env.USER);
+    await page.type('[name="session[password]"]', process.env.PASS);
     await page.click('[data-testid="LoginForm_Login_Button"]');
 
     await page.waitForNavigation();
@@ -47,14 +47,23 @@ async function saveCookie(page) {
   );
 }
 
-async function bot() {
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
-  await page.goto('https://twitter.com/login', { waitUntil: 'networkidle0' });
+async function deleteMedia(page, quantityOfMedias) {
+  for (let i = 0; i < quantityOfMedias; i++) {
+    await page.click('[data-testid="caret"]');
+    await page.waitForTimeout(200);
 
-  const userAgent = 'Mozilla/5.0 (X11; Linux x86_64)' +
-  'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.39 Safari/537.36';
-  await page.setUserAgent(userAgent);
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(200);
+
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(200);
+  }
+}
+
+async function bot() {
+  const browser = await puppeteer.launch({ headless: false });
+  const page = await browser.newPage();
+  await page.goto('https://twitter.com/login', { waitUntil: 'networkidle2' });
 
   const previousSession = fs.existsSync(cookiesFilePath);
 
@@ -67,15 +76,7 @@ async function bot() {
 
   await page.goto('https://twitter.com/matheuso_99/media', { waitUntil: 'networkidle2' });
 
-  await page.click('[data-testid="caret"]');
-
-  await page.waitForSelector('[role="menu"]', { timeout: 500 });
-  
-  const test = await page.evaluate(() => document.querySelector('[role="menu"]'));
-  
-  console.log(test);
-  
-  // await page.click('[data-testid="confirmationSheetConfirm"]', { delay: 100 });
+  await deleteMedia(page, 100);
 }
 
 bot();
